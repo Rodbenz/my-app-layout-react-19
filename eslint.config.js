@@ -29,7 +29,8 @@ export default tseslint.config(
       "@typescript-eslint/no-explicit-any": 0,
       "react-hooks/exhaustive-deps":0,
       "react-hooks/rules-of-hooks":0,
-      "no-empty-pattern": 0
+      "no-empty-pattern": 0,
+      "react-refresh/only-export-components": 0,
     },
   },
 )
