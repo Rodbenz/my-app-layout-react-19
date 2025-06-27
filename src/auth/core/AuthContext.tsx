@@ -2,6 +2,7 @@ import { createContext, useContext, useState, ReactNode, useEffect } from 'react
 import { login_auth_emp_get } from '../../service/login';
 import { logintType, AuthModel, auth_role_profile, auth_role_menu, auth_role_menu_func, auth_app_info } from '../../types/users';
 import { fetchIpAddress } from '../../service/ip';
+import { useLayout } from '../../layout/core/LayoutProvider';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -18,6 +19,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const { setIsLoadingScreen } = useLayout();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [error, setError] = useState("");
   const [userData, setUserData] = useState<auth_role_profile[] | null>(null);
@@ -131,6 +133,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (user: string, password: string) => {
     setIsLoading(true);
+    setIsLoadingScreen(true);
     setError("");
 
     const configLogin = import.meta.env.VITE_APP_TRR_API_CONFIG_LOGIN;
@@ -147,15 +150,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (data?.status === 'Success' && data?.data?.auth_role_profile) {
         setSession(data);
+        setIsLoadingScreen(false);
       } else {
         setError(data?.error_message || 'Login failed');
       }
     } catch (error) {
       setError("Login failed. Please try again.");
       clearSession();
+      setIsLoadingScreen(false);
       throw error;
     } finally {
       setIsLoading(false);
+      setIsLoadingScreen(false);
     }
   };
 

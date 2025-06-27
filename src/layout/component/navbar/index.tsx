@@ -25,13 +25,10 @@ export default function Navbar({ isOpen, setIsOpen }: NavbarProps) {
             </IconButton>
             <a href="/" className="flex ml-2 md:mr-24">
               <img
-                src="https://flowbite.com/docs/images/logo.svg"
-                className="h-8 mr-3"
+                src={`${import.meta.env.VITE_APP_TRR_API_URL_LOGO}/storage/INTRANET/PROD/Asset/Logo/Logo_TRR_Lin_TH.png`}
+                className="h-14 mr-3"
                 alt="Logo"
               />
-              <span className="self-center text-xl font-semibold sm:text-2xl whitespace-nowrap dark:text-white">
-                Your Company
-              </span>
             </a>
           </div>
           <div className="flex items-center">

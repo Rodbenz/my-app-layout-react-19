@@ -28,10 +28,10 @@ export default function MasterLayout({ children }: PropsLayout) {
       <Navbar isOpen={isOpen} setIsOpen={setIsOpen} />
       <Sidebar isOpen={isOpen} />
       
-      <div className={`p-4 transition-all duration-300 ${
+      <div className={`p-4 transition-all duration-200 ${
         isOpen ? 'sm:ml-64' : 'sm:ml-16'
       } pt-20`}>
-        <div className="p-4 border-2 border-gray-200 rounded-lg dark:border-gray-700">
+        <div className="p-4 my-10 border-2 border-gray-200 rounded-lg dark:border-gray-700">
           {children}
         </div>
       </div>
