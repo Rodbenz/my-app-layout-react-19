@@ -5,10 +5,16 @@ const LayoutContext = createContext<useLayoutContextProps>(initialState);
 
 const LayoutProvider = ({ children }: WithChildren) => {
   const [isLoadingScreen, setIsLoadingScreen] = useState(initialState.isLoadingScreen);
+  const [menuFuncList, setMenuFuncList] = useState(initialState.menuFuncList);
+  const [menuFunc, setMenuFunc] = useState(initialState.menuFunc);
 
   const value = {
     isLoadingScreen,
     setIsLoadingScreen,
+    menuFuncList,
+    setMenuFuncList,
+    menuFunc,
+    setMenuFunc
   };
 
   return (

@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Tooltip, Collapse } from '@mui/material';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { useAuth } from '../../../auth/core/AuthContext';
+import { useLayout } from '../../core/LayoutProvider';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -19,8 +20,46 @@ interface MenuItem {
 }
 
 export default function Sidebar({ isOpen }: SidebarProps) {
-  const { menuData } = useAuth();
+  const { menuData, menuFuncData } = useAuth();
+  const { setMenuFunc, setMenuFuncList } = useLayout();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [expandedMenus, setExpandedMenus] = useState<{ [key: string]: boolean }>({});
+
+  // Auto-expand menus based on current location
+  useEffect(() => {
+    const currentPath = location.pathname.substring(1); // Remove leading slash
+
+    // Find which menus should be expanded based on current path
+    const shouldExpandMenus: { [key: string]: boolean } = {};
+
+    const findAndExpandParentMenus = (items: MenuItem[], path: string) => {
+      for (const item of items) {
+        // Check if this item matches the current path
+        if (item.menu_url === path) {
+          return true;
+        }
+
+        // Check if any submenu matches
+        if (item.submenu && item.submenu.length > 0) {
+          const hasMatch = item.submenu.some(subItem =>
+            subItem.menu_url === path || findAndExpandParentMenus(subItem.submenu, path)
+          );
+
+          if (hasMatch) {
+            shouldExpandMenus[item.menu_name] = true;
+            return true;
+          }
+        }
+      }
+      return false;
+    };
+
+    const menuResult = buildMenuWithSubmenu(menuData || []);
+    findAndExpandParentMenus(menuResult, currentPath);
+
+    setExpandedMenus(shouldExpandMenus);
+  }, [location.pathname, menuData]);
 
   const toggleSubmenu = (menuName: string) => {
     setExpandedMenus(prev => ({
@@ -29,11 +68,29 @@ export default function Sidebar({ isOpen }: SidebarProps) {
     }));
   };
 
+  const handleClickTo = (item: MenuItem) => {
+    if (item.menu_url) {
+      setMenuFunction(item);
+      navigate(`/${item.menu_url}`);
+    }
+  };
+
+  // set menu function
+  const setMenuFunction = (item: MenuItem) => {
+    if (item.menu_url) {
+      const menuFuncList = menuFuncData?.filter((func) => func?.menu_id === item.menu_id && func?.funct_oth === 'LIST');
+      const menuFunc = menuFuncData?.filter((func) => func?.menu_id === item.menu_id && func?.funct_oth === '#');
+      setMenuFuncList(menuFuncList);
+      setMenuFunc(menuFunc);
+      console.log(menuFuncList, menuFunc, 'menuFuncList');
+    }
+  };
+
 
   function buildMenuWithSubmenu(data: any[]): MenuItem[] {
     const map = new Map<number, MenuItem>();
 
-    // สร้าง Map แรกเพื่อเก็บเมนูทั้งหมด
+    // สร้าง Map แรกเพื่อเก็บ<|im_start|> scoutingหมด
     data.forEach(item => {
       map.set(item.menu_id, {
         ...item,
@@ -50,11 +107,11 @@ export default function Sidebar({ isOpen }: SidebarProps) {
         const parent = map.get(item.menu_sub)!;
         parent.submenu.push(current);
       } else {
-        tree.push(current); // menu_sub === 0 or undefined → เมนูหลัก
+        tree.push(current); // menu_sub === 0 or undefined → เมนู scouting
       }
     });
 
-    // เรียงลำดับ submenu ด้วย menu_sequence (optional)
+    // เรียงลำ scouting submenu ด้วย menu_sequence (optional)
     const sortSubmenu = (items: MenuItem[]) => {
       items.sort((a, b) => (b.menu_sequence ?? 0) - (a.menu_sequence ?? 0));
       items.forEach(i => sortSubmenu(i.submenu));
@@ -66,14 +123,23 @@ export default function Sidebar({ isOpen }: SidebarProps) {
 
   const menuResult: MenuItem[] = buildMenuWithSubmenu(menuData || []);
 
+  const isMenuActive = (item: MenuItem): boolean => {
+    if (!item.menu_url) return false;
+    return location.pathname === `/${item.menu_url}`;
+  };
+
+  const isMenuParentActive = (item: MenuItem): boolean => {
+    return item.submenu?.some(sub =>
+      location.pathname === `/${sub.menu_url}` || isMenuParentActive(sub)
+    ) || false;
+  };
+
   const renderMenuItem = (item: MenuItem, level: number = 0) => {
     const hasSubmenu = item.submenu && item.submenu.length > 0;
     const isExpanded = expandedMenus[item.menu_name] || false;
     const paddingLeft = level * 1.5 + 0.5;
-
-    const isParentActive = item.submenu?.some(sub =>
-      location.pathname.includes(`/${sub.menu_url}`)
-    );
+    const isActive = isMenuActive(item);
+    const isParentActive = isMenuParentActive(item);
 
     const renderLabel = () => {
       if (level === 0) {
@@ -103,7 +169,7 @@ export default function Sidebar({ isOpen }: SidebarProps) {
     const iconAndLabel = (
       <div className="w-full">
         {item.menu_icon && (
-          <span className="text-gray-500 mr-3 min-w-[20px] text-center">
+          <span className={`mr-3 min-w-[20px] text-center ${isActive ? 'text-blue-600' : 'text-gray-500'}`}>
             <i className={`${item.menu_icon} text-base`}></i>
           </span>
         )}
@@ -111,18 +177,13 @@ export default function Sidebar({ isOpen }: SidebarProps) {
       </div>
     );
 
-
     if (hasSubmenu) {
       return (
         <li key={item.menu_name}>
           <Tooltip title={!isOpen && level === 0 ? item.menu_name : ''} placement="right">
             <div
               onClick={() => toggleSubmenu(item.menu_name)}
-              className={`flex items-center p-2 text-sm rounded-lg transition-all 
-              ${isExpanded || isParentActive
-                  ? 'bg-blue-50 text-blue-600'
-                  : 'text-gray-900 hover:bg-gray-100'}
-            `}
+              className={`flex items-center p-2 text-sm rounded-lg transition-all cursor-pointer`}
               style={{ paddingLeft: `${paddingLeft}rem` }}
             >
               {iconAndLabel}
@@ -145,21 +206,16 @@ export default function Sidebar({ isOpen }: SidebarProps) {
     return (
       <li key={item.menu_name}>
         <Tooltip title={!isOpen && level === 0 ? item.menu_name : ''} placement="right">
-          <NavLink
-            to={`/${item.menu_url}`}
-            className={({ isActive }) => `
-            flex items-center w-full p-2 text-sm rounded-lg transition-all
-            ${isActive ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-100'}
-          `}
+          <div
+            className={`flex items-center p-2 text-sm rounded-lg transition-all cursor-pointer
+              ${isActive
+                ? 'bg-blue-50 text-blue-600'
+                : 'text-gray-900 hover:bg-gray-100'}`}
+            onClick={() => handleClickTo(item)}
             style={{ paddingLeft: `${paddingLeft}rem` }}
           >
-            {item.menu_icon && (
-              <span className="text-gray-500 mr-3">
-                <i className={`${item.menu_icon}`}></i>
-              </span>
-            )}
-            {renderLabel()}
-          </NavLink>
+            {iconAndLabel}
+          </div>
         </Tooltip>
       </li>
     );
@@ -169,9 +225,9 @@ export default function Sidebar({ isOpen }: SidebarProps) {
     <aside
       className={`fixed top-0 left-0 z-40 h-screen pt-20 transition-all bg-white border-r border-gray-200
     ${isOpen ? 'w-64' : 'w-16'}
-    ${isOpen ? 'translate-x-0' : '-translate-x-full'} sm:translate-x-0
+    sm:translate-x-0
     dark:bg-gray-800 dark:border-gray-700
-    overflow-x-hidden  // ✅ Add this
+    overflow-x-hidden
   `}
     >
       <div className="h-full px-3 pt-5 pb-4 overflow-y-auto overflow-x-hidden bg-white dark:bg-gray-800">
@@ -180,6 +236,5 @@ export default function Sidebar({ isOpen }: SidebarProps) {
         </ul>
       </div>
     </aside>
-
   );
 }

@@ -31,6 +31,7 @@ export default tseslint.config(
       "react-hooks/rules-of-hooks":0,
       "no-empty-pattern": 0,
       "react-refresh/only-export-components": 0,
+      "@typescript-eslint/no-unused-expressions": 0,
     },
   },
 )

@@ -1,5 +1,6 @@
 import { Route, Routes, Navigate } from "react-router-dom";
 import { ProtectedLayout } from "../layout/ProtectedLayout";
+import Home from "../pages/home";
 
 
 const ProtectedRoute = () => {
@@ -9,7 +10,7 @@ const ProtectedRoute = () => {
         {/* Redirect to Dashboard after success login/registartion */}
         <Route path="auth/*" element={<Navigate to="/home" />} />
         {/* Pages */}
-        <Route path="home" element={<>home</>} />
+        <Route path="home" element={<Home/>} />
         <Route path="register" element={<>register</>} />
         <Route path="user" element={<>user</>} />
         <Route path="make-payment" element={<>make-payment</>} />
