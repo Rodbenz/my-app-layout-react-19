@@ -1,6 +1,8 @@
 import { Route, Routes, Navigate } from "react-router-dom";
 import { ProtectedLayout } from "../layout/ProtectedLayout";
 import Home from "../pages/home";
+import QRGenerator from "../pages/QR";
+import RichTextEditor from "../components/TextEditor";
 
 
 const ProtectedRoute = () => {
@@ -11,9 +13,10 @@ const ProtectedRoute = () => {
         <Route path="auth/*" element={<Navigate to="/home" />} />
         {/* Pages */}
         <Route path="home" element={<Home/>} />
-        <Route path="register" element={<>register</>} />
+        <Route path="register" element={<RichTextEditor/>} />
         <Route path="user" element={<>user</>} />
         <Route path="make-payment" element={<>make-payment</>} />
+        <Route path="qr-generator" element={<QRGenerator/>} />
         {/* <Route path="dashboard" element={<DashboardWrapper />} />
         <Route path="builder" element={<BuilderPageWrapper />} />
         <Route path="menu-test" element={<MenuTestPage />} />

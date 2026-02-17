@@ -1,5 +1,6 @@
 import React from "react";
 import DataTable from "../../components/MUI/DataTable";
+
 export const historyWaive = [
   {
     id: "waive_no",

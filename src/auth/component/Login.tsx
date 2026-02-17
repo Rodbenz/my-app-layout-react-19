@@ -3,14 +3,9 @@ import { useAuth } from '../core/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 const LoginSection: React.FC = () => {
-  const { login, error, isAuthenticated } = useAuth();
+  const { login, error } = useAuth();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/home');
-    }
-  }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,7 +14,9 @@ const LoginSection: React.FC = () => {
     const password = (form.elements.namedItem('password') as HTMLInputElement).value;
 
     try {
-      await login(username, password);
+      await login(username, password).then(() => {
+        navigate('/home');
+      });
     } catch (error) {
       console.error('Login failed:', error);
     }

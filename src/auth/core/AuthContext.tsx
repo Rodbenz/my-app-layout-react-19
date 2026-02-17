@@ -20,7 +20,7 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { setIsLoadingScreen } = useLayout();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
   const [error, setError] = useState("");
   const [userData, setUserData] = useState<auth_role_profile[] | null>(null);
   const [menuData, setMenuData] = useState<auth_role_menu[] | null>(null);
